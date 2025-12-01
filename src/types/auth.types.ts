@@ -1,10 +1,8 @@
 import { User } from "./user.types";
 
-export interface LoginType {
+export interface AuthResponse {
     success: boolean;
-    data: {
-        token: string;
-        user: User;
-    }
+    token: string;
+    user: User;
     message?: string;
 }

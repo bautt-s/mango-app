@@ -1,33 +1,31 @@
-import { AxiosError } from "axios";
-import { mainApi } from "../config/mainApi";
-import { LoginType, User } from "@/types";
+import { AuthResponse } from "@/types";
+import { createHook } from "./createHook";
 
-export const useLogin = async (body: { email: string; password: string }): Promise<LoginType | string> => {
-    try {
-        const { data } = await mainApi.post<{
-            success: boolean;
-            message: string;
-            data: {
-                token: string;
-                user: User
-            };
-            errors?: Record<string, string[]>;
-        }>("/login", body);
+export const useLogin = createHook<{
+    email: string;
+    password: string;
+}, AuthResponse>("/login", "post");
 
-        if (data.success) return data
+export const useRegister = createHook<{
+    username: string,
+    email: string,
+    phone: string,
+    password: string,
+    password_confirmation: string
+}, AuthResponse>("/register", "post");
 
-        // si viene con errores, los formateamos y los agregamos al mensaje
-        const errorsString = data.errors ? Object.values(data.errors).flat().join(" | ") : "";
+export const useSendCode = createHook<{
+    email: string;
+}, { success: boolean, data: string, message?: string }>("/send-code", "post");
 
-        return errorsString ? `${data.message}` : data.message;
-    } catch (error) {
-        console.error(error);
-        if (error instanceof AxiosError) {
-            const resp = error.response?.data as { message?: string; errors?: Record<string, string[]> } | undefined;
-            const errorsString = resp?.errors ? Object.values(resp.errors).flat().join(" | ") : "";
-            const message = resp?.message || error.message || "Error de conexión";
-            return message
-        }
-        return "Error desconocido";
-    }
-};
+export const useValidateCode = createHook<{
+    email: string;
+    code: string;
+}, { success: boolean, data: string, message?: string }>("/validate-code", "post");
+
+export const useResetPassword = createHook<{
+    email: string;
+    code: string;
+    password: string;
+    password_confirmation: string;
+}, { success: boolean, data: string, message?: string }>("/reset-password", "post");
